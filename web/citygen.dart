@@ -27,7 +27,7 @@ void main() {
   CanvasElement canvas = querySelector('canvas');
   ctx = canvas.context2D;
   tileSize = canvas.width / mapWidth;
-  
+   
   ctx.scale(tileSize, tileSize);
   
   window.animationFrame.then(render);
