@@ -29,8 +29,7 @@ void main() {
   window.animationFrame.then(render);
 }
 
-void render(num delta){
-  
+void render(num delta){  
   ctx
     ..setFillColorRgb(0, 0, 0)
     ..fillRect(0, 0, ctx.canvas.width, ctx.canvas.height)
@@ -41,7 +40,7 @@ void render(num delta){
     for(int x = 0; x < mapGen.map[y].length; x++){
       if(mapGen.map[y][x] == 0) continue;
       
-      ctx..rect(x, y , 1, 1);
+      ctx..rect(x, mapGen.map.length - 1 - y, 1, 1);
     } 
   }
   ctx.stroke();

@@ -4,8 +4,7 @@ class MapGenerator{
   List<Room> rooms;
   List<List<num>> map;
 
-  bool mergeOverriding = false;
-
+  bool mergeOverriding = false; //should overlaping rooms be merged into a bigger room?
   int minRooms = 5;
   int maxRooms = 8;
   int minRoomSize = 6;
