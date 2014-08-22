@@ -7,44 +7,50 @@ import 'dart:math';
 part 'src/room.dart';
 
 List<Room> rooms;
+List<List<num>> map;
 
-int maxRooms = 40;
-int minRoomSize = 10;
-int maxRoomSize = 25;
-int mapWidth = 250;
-int mapHeight = 150;
+int maxRooms = 10;
+int minRoomSize = 5;
+int maxRoomSize = 8;
+int mapWidth = 75;
+int mapHeight = 45;
 num _delta = 0;
 Random random = new Random();
 
 CanvasRenderingContext2D ctx;
-num scaleR = 1;
+num tileSize = 1;
 
 void main() {
-  window.animationFrame.then(render);
   placeRooms();
-  print(rooms.length);
+  buildCorridors();
+  print('created ${rooms.length} rooms');
   CanvasElement canvas = querySelector('canvas');
   ctx = canvas.context2D;
-  scaleR = canvas.width / mapWidth;
+  tileSize = canvas.width / mapWidth;
   
-//  window.animationFrame.then(render);
+  ctx.scale(tileSize, tileSize);
+  
+  window.animationFrame.then(render);
 }
 
 void render(num delta){
   
   ctx
-    ..restore()
-    ..setTransform(1, 0, 0, 1, 0, 0)
-    ..clearRect(0,  0, ctx.canvas.width, ctx.canvas.height)
     ..setFillColorRgb(0, 0, 0)
-    ..scale(scaleR, scaleR);
+    ..fillRect(0, 0, ctx.canvas.width, ctx.canvas.height)
+    ..setFillColorRgb(115, 115, 115);
   
-  rooms.forEach((Room r){
-    ctx
-      ..fillRect(r.x1, r.y1, r.width, r.height);
-  });
+  ctx.strokeStyle = 'White';
+  for(int y = 0; y < map.length; y++){
+    for(int x = 0; x < map[y].length; x++){
+      if(map[y][x] == 0) continue;
+      
+      ctx..rect(x, y , 1, 1);
+    } 
+  }
+  ctx.stroke();
+  ctx.fill();
   
-  window.animationFrame.then(render);
 }
 
 void placeRooms(){
@@ -61,7 +67,7 @@ void placeRooms(){
       var oRoom = rooms[i];
       if (oRoom.intersects(room)){
         failed = true;
-//        mergeRooms(oRoom, room);
+        mergeRooms(oRoom, room);
         break;
       }
     }
@@ -69,8 +75,37 @@ void placeRooms(){
     if (!failed){
 //    createRoom(oRoom);
       rooms.add(room);
+      print('new room $room');
     }
     
+  }
+  
+  //map = new List<List<num>>.filled(mapHeight, new List.filled(mapWidth, 0));
+  map = new List(mapHeight);
+  for( int i = 0; i < mapHeight; i++ ){
+    map[i] = new List.filled(mapWidth, 0);
+  }
+  
+  rooms.forEach((Room room){
+    for ( int y = room.y1; y < room.y2; y++){
+      map[y].fillRange(room.x1, room.x2, 1);
+    }
+  });
+}
+
+void buildCorridors(){
+  for(int r = 0; r < rooms.length; r++){
+    bool sideCorridor = random.nextBool();
+    Room current = rooms[r];
+    Room next = r + 1 == rooms.length ? rooms[0] : rooms[r+1];
+    
+    if (sideCorridor){
+      hCorridor(current.center.x, next.center.x, current.center.y);
+      vCorridor(current.center.y, next.center.y, next.center.x);
+    }else{
+      vCorridor(current.center.y, next.center.y, current.center.x);
+      hCorridor(current.center.x, next.center.x, next.center.y);
+    }
   }
 }
 
@@ -84,38 +119,51 @@ void mergeRooms(Room r1, Room r2){
   
   r1.width = r1.x2 - r1.x1;
   r1.height = r1.y2 - r1.y1;
+  
+  rooms.remove(r2);
+  
+  for(int i = 0; i <rooms.length; i++){
+    var oRoom = rooms[i];
+    if (oRoom != r1 && oRoom != r2 && oRoom.intersects(r1)){
+      mergeRooms(r1, oRoom);
+      print('merged room $r1');
+      break;
+    }
+  }
 }
 
 void hCorridor(int x1, int x2, int y){
-  for (x in Std.int(Math.min(x1, x2))...Std.int(Math.max(x1, x2)) + 1) {
+  for ( int x = min(x1, x2); x < max(x1, x2) + 1; x++ ){
     // destory the tiles to "carve" out corridor
-    map[x][y].parent.removeChild(map[x][y]);
+//    map[x][y].parent.removeChild(map[x][y]);
 
     // place a new unblocked tile
-    map[x][y] = new Tile(Tile.DARK_GROUND, false, false);
+//    map[x][y] = new Tile(Tile.DARK_GROUND, false, false);
 
     // add tile as a new game object
-    addChild(map[x][y]);
+//    addChild(map[x][y]);
 
     // set the location of the tile appropriately
-    map[x][y].setLoc(x, y);
+//    map[x][y].setLoc(x, y);
+    map[y][x] = 1;
   }
 }
 
     // create vertical corridor to connect rooms
 void vCorridor(int y1, int y2, int x) {
-  for (y in Std.int(Math.min(y1, y2))...Std.int(Math.max(y1, y2)) + 1) {
+  for ( int y = min(y1, y2); y < max(y1, y2) + 1; y++ ){
     // destroy the tiles to "carve" out corridor
-    map[x][y].parent.removeChild(map[x][y]);
+//    map[x][y].parent.removeChild(map[x][y]);
 
     // place a new unblocked tile
-    map[x][y] = new Tile(Tile.DARK_GROUND, false, false);
+//    map[x][y] = new Tile(Tile.DARK_GROUND, false, false);
 
     // add tile as a new game object
-    addChild(map[x][y]);
+//    addChild(map[x][y]);
 
     // set the location of the tile appropriately
-    map[x][y].setLoc(x, y);
+//    map[x][y].setLoc(x, y);
+    map[y][x] = 1;
   }
 }
 

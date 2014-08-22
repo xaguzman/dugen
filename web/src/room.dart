@@ -16,6 +16,8 @@ class Room{
   
   bool intersects(Room room) => 
       (x1 <= room.x2 && x2 >= room.x1 && y1 <= room.y2 && room.y2 >= room.y1);
+  
+  String toString() => 'x1: $x1, y1: $y1, x2: $x2, y2: $y2';
 }
 
 class Point{
